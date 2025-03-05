@@ -1,0 +1,130 @@
+<!-- src/main/resources/templates/quiz.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Responder Pregunta</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Contenedor principal */
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        /* Título de la pregunta */
+        .quiz-container h2 {
+            margin-bottom: 20px;
+            color: #333333;
+            text-align: center;
+        }
+
+        /* Lista de opciones */
+        .options {
+            margin-bottom: 20px;
+        }
+
+        .options label {
+            display: block;
+            margin-bottom: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+            padding-left: 35px;
+        }
+
+        /* Estilo de los inputs */
+        .options input[type="checkbox"],
+        .options input[type="radio"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        /* Botón de envío */
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #218838;
+        }
+
+        /* Botón para volver al inicio */
+        .back-btn {
+            display: block;
+            margin-top: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #007bff;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #0056b3;
+        }
+
+        /* Responsividad */
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+            .quiz-container h2 {
+                font-size: 18px;
+            }
+            .options label {
+                font-size: 14px;
+            }
+            .submit-btn {
+                font-size: 14px;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+	
+	
+    <div class="quiz-container">
+        <h2 th:text="${question.text}">Texto de la pregunta</h2>
+        <form th:action="@{/quiz}" method="post">
+            <input type="hidden" name="questionId" th:value="${question.id}"/>
+            <div class="options">
+                <div th:each="option : ${question.options}">
+                    <label>
+                        <input type="checkbox" name="optionIds" th:value="${option.id}"/>
+                        <span th:text="${option.text}">Opción</span>
+                    </label>
+                </div>
+            </div>
+            <button type="submit" class="submit-btn">Enviar Respuesta</button>
+        </form>
+        <a href="/" class="back-btn">Volver al Inicio</a>
+    </div>
+</body>
+</html>

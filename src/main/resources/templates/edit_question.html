@@ -1,0 +1,461 @@
+<!-- src/main/resources/templates/edit_question.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Editar Pregunta</title>
+    <style>
+        /* Mismos estilos que create_question.html */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 700px;
+            width: 100%;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555555;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .options-container {
+            margin-bottom: 20px;
+        }
+
+        .option-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .option-group input[type="checkbox"],
+        .option-group input[type="radio"] {
+            margin-right: 10px;
+            transform: scale(1.5);
+        }
+
+        .option-group input[type="text"] {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #cccccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .add-option-btn {
+            padding: 10px 15px;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .add-option-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #218838;
+        }
+
+        .back-btn {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            text-decoration: none;
+            color: #007bff;
+            font-size: 16px;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #0056b3;
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+    </style>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const questionTypeSelect = document.getElementById('type');
+            const optionsContainer = document.getElementById('options-container');
+            const addOptionBtn = document.getElementById('add-option-btn');
+            const submitBtn = document.getElementById('submit-btn');
+
+            function resetOptions() {
+                optionsContainer.innerHTML = '';
+            }
+
+            function renderTrueFalseOptions(existingOptions = []) {
+                resetOptions();
+                const options = ['Verdadero', 'Falso'];
+                options.forEach((optionText, index) => {
+                    const optionGroup = document.createElement('div');
+                    optionGroup.classList.add('option-group');
+
+                    const isCorrectRadio = document.createElement('input');
+                    isCorrectRadio.type = 'radio';
+                    isCorrectRadio.name = 'correctOption';
+                    isCorrectRadio.value = index;
+                    isCorrectRadio.required = true;
+                    isCorrectRadio.addEventListener('change', function() {
+                        setIsCorrect(index, true);
+                    });
+
+                    const optionTextInput = document.createElement('input');
+                    optionTextInput.type = 'text';
+                    optionTextInput.name = `options[${index}].text`;
+                    optionTextInput.value = optionText;
+                    optionTextInput.readOnly = true;
+                    optionTextInput.required = true;
+
+                    const isCorrectHidden = document.createElement('input');
+                    isCorrectHidden.type = 'hidden';
+                    isCorrectHidden.name = `options[${index}].isCorrect`;
+                    isCorrectHidden.value = existingOptions.length > 0 && existingOptions[index].isCorrect ? 'true' : 'false';
+
+                    optionGroup.appendChild(isCorrectRadio);
+                    optionGroup.appendChild(optionTextInput);
+                    optionGroup.appendChild(isCorrectHidden);
+
+                    optionsContainer.appendChild(optionGroup);
+                });
+
+                // Deshabilitar el botón de añadir opciones
+                addOptionBtn.style.display = 'none';
+            }
+
+            function renderSingleChoiceOptions(existingOptions = []) {
+                resetOptions();
+                const existingLength = existingOptions.length > 0 ? existingOptions.length : 2;
+                for (let i = 0; i < existingLength; i++) {
+                    const option = existingOptions[i];
+                    addSingleChoiceOption(option ? option.text : '', option ? option.isCorrect : false);
+                }
+
+                // Mostrar el botón de añadir opciones
+                addOptionBtn.style.display = 'inline-block';
+            }
+
+            function renderMultipleChoiceOptions(existingOptions = []) {
+                resetOptions();
+                const existingLength = existingOptions.length > 0 ? existingOptions.length : 2;
+                for (let i = 0; i < existingLength; i++) {
+                    const option = existingOptions[i];
+                    addMultipleChoiceOption(option ? option.text : '', option ? option.isCorrect : false);
+                }
+
+                // Mostrar el botón de añadir opciones
+                addOptionBtn.style.display = 'inline-block';
+            }
+
+            function addSingleChoiceOption(text = '', isCorrect = false) {
+                const index = optionsContainer.children.length;
+                const optionGroup = document.createElement('div');
+                optionGroup.classList.add('option-group');
+
+                const isCorrectRadio = document.createElement('input');
+                isCorrectRadio.type = 'radio';
+                isCorrectRadio.name = 'correctOption';
+                isCorrectRadio.value = index;
+                isCorrectRadio.required = true;
+                if (isCorrect) isCorrectRadio.checked = true;
+                isCorrectRadio.addEventListener('change', function() {
+                    setIsCorrect(index, true);
+                });
+
+                const optionTextInput = document.createElement('input');
+                optionTextInput.type = 'text';
+                optionTextInput.name = `options[${index}].text`;
+                optionTextInput.placeholder = 'Texto de la opción';
+                optionTextInput.value = text;
+                optionTextInput.required = true;
+
+                const isCorrectHidden = document.createElement('input');
+                isCorrectHidden.type = 'hidden';
+                isCorrectHidden.name = `options[${index}].isCorrect`;
+                isCorrectHidden.value = isCorrect ? 'true' : 'false';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.textContent = 'Eliminar';
+                removeBtn.style.marginLeft = '10px';
+                removeBtn.style.padding = '5px 10px';
+                removeBtn.style.backgroundColor = '#dc3545';
+                removeBtn.style.color = 'white';
+                removeBtn.style.border = 'none';
+                removeBtn.style.borderRadius = '5px';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.onclick = function() {
+                    optionGroup.remove();
+                    updateRadioValues();
+                };
+
+                optionGroup.appendChild(isCorrectRadio);
+                optionGroup.appendChild(optionTextInput);
+                optionGroup.appendChild(isCorrectHidden);
+                optionGroup.appendChild(removeBtn);
+
+                optionsContainer.appendChild(optionGroup);
+            }
+
+            function addMultipleChoiceOption(text = '', isCorrect = false) {
+                const index = optionsContainer.children.length;
+                const optionGroup = document.createElement('div');
+                optionGroup.classList.add('option-group');
+
+                const isCorrectCheckbox = document.createElement('input');
+                isCorrectCheckbox.type = 'checkbox';
+                isCorrectCheckbox.name = `options[${index}].isCorrect`;
+                isCorrectCheckbox.checked = isCorrect;
+                isCorrectCheckbox.addEventListener('change', function() {
+                    isCorrectHidden.value = isCorrectCheckbox.checked ? 'true' : 'false';
+                });
+
+                const optionTextInput = document.createElement('input');
+                optionTextInput.type = 'text';
+                optionTextInput.name = `options[${index}].text`;
+                optionTextInput.placeholder = 'Texto de la opción';
+                optionTextInput.value = text;
+                optionTextInput.required = true;
+
+                const isCorrectHidden = document.createElement('input');
+                isCorrectHidden.type = 'hidden';
+                isCorrectHidden.name = `options[${index}].isCorrect`;
+                isCorrectHidden.value = isCorrect ? 'true' : 'false';
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.textContent = 'Eliminar';
+                removeBtn.style.marginLeft = '10px';
+                removeBtn.style.padding = '5px 10px';
+                removeBtn.style.backgroundColor = '#dc3545';
+                removeBtn.style.color = 'white';
+                removeBtn.style.border = 'none';
+                removeBtn.style.borderRadius = '5px';
+                removeBtn.style.cursor = 'pointer';
+                removeBtn.onclick = function() {
+                    optionGroup.remove();
+                };
+
+                isCorrectCheckbox.addEventListener('change', function() {
+                    isCorrectHidden.value = isCorrectCheckbox.checked ? 'true' : 'false';
+                });
+
+                optionGroup.appendChild(isCorrectCheckbox);
+                optionGroup.appendChild(optionTextInput);
+                optionGroup.appendChild(isCorrectHidden);
+                optionGroup.appendChild(removeBtn);
+
+                optionsContainer.appendChild(optionGroup);
+            }
+
+            function setIsCorrect(selectedIndex, value) {
+                const optionGroups = optionsContainer.querySelectorAll('.option-group');
+                optionGroups.forEach((group, index) => {
+                    const hiddenInput = group.querySelector('input[type="hidden"]');
+                    if (index == selectedIndex) {
+                        hiddenInput.value = value ? 'true' : 'false';
+                    } else {
+                        hiddenInput.value = 'false';
+                    }
+                });
+            }
+
+            function updateRadioValues() {
+                const optionGroups = optionsContainer.querySelectorAll('.option-group');
+                optionGroups.forEach((group, index) => {
+                    const radio = group.querySelector('input[type="radio"]');
+                    const hiddenInput = group.querySelector('input[type="hidden"]');
+                    radio.value = index;
+                    // Reset hidden isCorrect
+                    hiddenInput.value = 'false';
+                });
+            }
+
+            function handleQuestionTypeChange() {
+                const selectedType = questionTypeSelect.value;
+                let existingOptions = [];
+                try {
+                    existingOptions = JSON.parse(questionTypeSelect.dataset.options || '[]');
+                } catch (e) {
+                    console.error('Error al parsear data-options:', e);
+                }
+
+                if (selectedType === 'TRUE_FALSE') {
+                    renderTrueFalseOptions(existingOptions);
+                } else if (selectedType === 'SINGLE_CHOICE') {
+                    renderSingleChoiceOptions(existingOptions);
+                } else if (selectedType === 'MULTIPLE_CHOICE') {
+                    renderMultipleChoiceOptions(existingOptions);
+                } else {
+                    resetOptions();
+                    addOptionBtn.style.display = 'inline-block';
+                }
+            }
+
+            addOptionBtn.addEventListener('click', function() {
+                const selectedType = questionTypeSelect.value;
+                if (selectedType === 'SINGLE_CHOICE') {
+                    addSingleChoiceOption();
+                } else if (selectedType === 'MULTIPLE_CHOICE') {
+                    addMultipleChoiceOption();
+                }
+            });
+
+            questionTypeSelect.addEventListener('change', handleQuestionTypeChange);
+
+            // Inicializar según el valor seleccionado (en caso de recarga o edición)
+            handleQuestionTypeChange();
+
+            // Validación antes de enviar el formulario
+            submitBtn.addEventListener('click', function(event) {
+                const selectedType = questionTypeSelect.value;
+                const options = optionsContainer.querySelectorAll('.option-group');
+
+                if (selectedType === 'MULTIPLE_CHOICE') {
+                    let correctCount = 0;
+                    options.forEach(option => {
+                        const hiddenInput = option.querySelector('input[type="hidden"]');
+                        if (hiddenInput && hiddenInput.value === 'true') {
+                            correctCount++;
+                        }
+                    });
+                    if (correctCount < 2) {
+                        alert('Debe seleccionar al menos dos opciones correctas para preguntas de elección múltiple.');
+                        event.preventDefault();
+                    }
+                }
+
+                if (selectedType === 'SINGLE_CHOICE') {
+                    let correctSelected = false;
+                    options.forEach(option => {
+                        const hiddenInput = option.querySelector('input[type="hidden"]');
+                        if (hiddenInput && hiddenInput.value === 'true') {
+                            correctSelected = true;
+                        }
+                    });
+                    if (!correctSelected) {
+                        alert('Debe seleccionar una opción correcta para preguntas de elección simple.');
+                        event.preventDefault();
+                    }
+                }
+
+                if (selectedType === 'TRUE_FALSE') {
+                    let correctSelected = false;
+                    options.forEach(option => {
+                        const hiddenInput = option.querySelector('input[type="hidden"]');
+                        if (hiddenInput && hiddenInput.value === 'true') {
+                            correctSelected = true;
+                        }
+                    });
+                    if (!correctSelected) {
+                        alert('Debe seleccionar una opción correcta para preguntas de verdadero/falso.');
+                        event.preventDefault();
+                    }
+                }
+
+                // Validación para la categoría
+                const categoryInput = document.getElementById('category');
+                if (categoryInput.value.trim() === '') {
+                    alert('La categoría de la pregunta no puede estar vacía.');
+                    event.preventDefault();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Editar Pregunta</h2>
+        <form th:action="@{|/questions/update/${question.id}|}" th:object="${question}" method="post">
+            <div class="form-group">
+                <label for="text">Texto de la Pregunta:</label>
+                <input type="text" id="text" th:field="*{text}" placeholder="Ingrese el texto de la pregunta" required/>
+                <div th:if="${#fields.hasErrors('text')}" class="error" th:errors="*{text}">Texto de la pregunta inválido.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="type">Tipo de Pregunta:</label>
+                <select id="type" th:field="*{type}" required data-options="${optionsJson}">
+                    <option value="" disabled selected>Seleccione el tipo de pregunta</option>
+                    <option th:each="type : ${questionTypes}" 
+                            th:value="${type}" 
+                            th:text="${#strings.toLowerCase(type) == 'true_false' ? 'Verdadero/Falso' :
+                                    (#strings.toLowerCase(type) == 'single_choice' ? 'Selección Única' :
+                                    (#strings.toLowerCase(type) == 'multiple_choice' ? 'Selección Múltiple' : 'Otro'))}">
+                        Tipo
+                    </option>
+                </select>
+                <div th:if="${#fields.hasErrors('type')}" class="error" th:errors="*{type}">Tipo de pregunta inválido.</div>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Categoría:</label>
+                <input type="text" id="category" th:field="*{category}" placeholder="Ingrese la categoría de la pregunta" required/>
+                <div th:if="${#fields.hasErrors('category')}" class="error" th:errors="*{category}">Categoría inválida.</div>
+            </div>
+
+            <div class="options-container" id="options-container">
+                <!-- Las opciones se renderizarán dinámicamente mediante JavaScript -->
+            </div>
+
+            <button type="button" class="add-option-btn" id="add-option-btn">Añadir Opción</button>
+
+            <button type="submit" class="submit-btn" id="submit-btn">Actualizar Pregunta</button>
+        </form>
+        <a href="/questions" class="back-btn">Volver al Listado de Preguntas</a>
+    </div>
+</body>
+</html>

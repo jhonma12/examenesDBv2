@@ -1,0 +1,185 @@
+<!-- src/main/resources/templates/pokemon_quiz.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Pokémon</title>
+    <style>
+        /* Estilos generales */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            box-sizing: border-box;
+        }
+
+        /* Contenedor principal */
+        .quiz-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            box-sizing: border-box;
+            text-align: center; /* Centrar el contenido */
+        }
+
+        /* Título de la pregunta */
+        .quiz-container h2 {
+            margin-bottom: 20px;
+            color: #333333;
+        }
+
+        /* Imagen del Pokémon */
+        .pokemon-image {
+            margin-bottom: 20px;
+        }
+
+        .pokemon-image img {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+        }
+
+        /* Mensajes de éxito o error */
+        .message {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .success {
+            color: #28a745;
+        }
+
+        .error {
+            color: #dc3545;
+        }
+
+        /* Lista de opciones */
+        .options {
+            margin-bottom: 20px;
+            text-align: left; /* Alinear opciones a la izquierda */
+        }
+
+        .options label {
+            display: block;
+            margin-bottom: 15px;
+            font-size: 16px;
+            cursor: pointer;
+            position: relative;
+            padding-left: 35px;
+        }
+
+        /* Estilo de los inputs */
+        .options input[type="radio"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        /* Botón de envío */
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .submit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Botón para volver al inicio */
+        .back-btn {
+            display: block;
+            margin-top: 15px;
+            text-align: center;
+            text-decoration: none;
+            color: #007bff;
+            font-size: 14px;
+            transition: color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            color: #0056b3;
+        }
+
+        /* Responsividad */
+        @media (max-width: 600px) {
+            .quiz-container {
+                padding: 20px;
+            }
+            .quiz-container h2 {
+                font-size: 18px;
+            }
+            .options label {
+                font-size: 14px;
+            }
+            .submit-btn {
+                font-size: 14px;
+                padding: 10px;
+            }
+            .pokemon-image img {
+                height: 250px;
+				object-fit: contain;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <!-- Título de la Quiz -->
+        <h1>Quiz Pokémon</h1>
+
+        <!-- Imagen del Pokémon -->
+
+
+        <!-- Mensajes de éxito o error -->
+        <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+        <!-- Formulario del Quiz -->
+        <form th:action="@{/questions/pokemon}" th:object="${quizQuestion}" method="post">
+            <!-- Pregunta dinámica -->
+            <h2 th:text="'¿Cuál es la evolución de ' + ${quizQuestion.pokemonName} + '?'">¿Cuál es la evolución de [Nombre Pokémon]?</h2>
+
+			<div class="pokemon-image" th:if="${quizQuestion.imageUrl}">
+			    <img th:src="${quizQuestion.imageUrl}" 
+			         th:alt="'Imagen de ' + ${quizQuestion.pokemonName}" />
+			</div>
+			
+            <!-- Opciones de respuesta -->
+            <div class="options">
+                <div th:each="option : ${quizQuestion.options}">
+                    <label>
+                        <input type="radio" th:field="*{selectedAnswer}" th:value="${option}" required/>
+                        <span th:text="${option}">Opción</span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Campo oculto para la respuesta correcta (si es necesario) -->
+            <input type="hidden" th:field="*{correctAnswer}" />
+
+            <!-- Botón de envío -->
+            <button type="submit" class="submit-btn">Enviar Respuesta</button>
+        </form>
+
+        <!-- Enlace para volver al inicio -->
+        <a href="/" class="back-btn">Volver al Inicio</a>
+    </div>
+</body>
+</html>

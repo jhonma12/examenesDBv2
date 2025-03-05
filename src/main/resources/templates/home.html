@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bienvenido a Exámenes</title>
+	<script>
+	    // Función para alternar la visibilidad del dropdown
+	    function toggleDropdown() {
+	        const dropdownContent = document.querySelector('.dropdown-content');
+	        
+	        // Comprobar si el dropdown está visible
+	        if (dropdownContent.style.display === 'block') {
+	            dropdownContent.style.display = 'none'; // Si está visible, se pliega
+	        } else {
+	            dropdownContent.style.display = 'block'; // Si no está visible, se despliega
+	        }
+	    }
+	</script>
+    <style>
+        /* Estilos básicos */
+        body {
+            font-family: Arial, sans-serif;
+            /* Configuración del fondo */
+            background-image: url('/images/fondo.jpg');
+            background-size: cover; /* Escala la imagen para cubrir todo el fondo */
+            background-repeat: no-repeat; /* Evita que la imagen se repita */
+            background-position: center center; /* Centra la imagen */
+            background-attachment: fixed; /* Fija la imagen al hacer scroll */
+            padding-top: 60px; /* Para evitar que el contenido quede oculto bajo la navbar fija */
+            margin: 0;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 100px); /* Altura total menos navbar */
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.8); /* Fondo semitransparente para mejorar la legibilidad */
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            width: 200px;
+            text-align: center;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    
+    <div th:insert="~{fragments/navbar :: navbar}"></div>
+
+    <div class="container">
+        <h1>Bienvenido a exámenes</h1>
+        <div class="menu">
+			<a href="/questions" class="btn" th:disabled="${usuario.nombre != 'admin'}">Listado de preguntas</a>
+            <a href="/quiz" class="btn">Responder Preguntas</a>
+        </div>
+    </div>
+</body>
+</html>

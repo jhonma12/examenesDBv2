@@ -1,0 +1,374 @@
+<!-- src/main/resources/templates/questions.html -->
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Listado de Preguntas</title>
+	<script>
+		// Función para alternar la visibilidad del dropdown
+		function toggleDropdown() {
+			const dropdownContent = document.querySelector('.dropdown-content');
+
+			// Comprobar si el dropdown está visible
+			if (dropdownContent.style.display === 'block') {
+				dropdownContent.style.display = 'none'; // Si está visible, se pliega
+			} else {
+				dropdownContent.style.display = 'block'; // Si no está visible, se despliega
+			}
+		}
+	</script>
+	<style>
+		body {
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background-color: #f0f2f5;
+			padding-top: 60px;
+			/* Para evitar que el contenido quede oculto bajo la navbar fija */
+			margin: 0;
+		}
+
+		.container {
+			max-width: 1000px;
+			margin: 0 auto;
+			padding: 20px;
+		}
+
+		h1 {
+			text-align: center;
+			color: #333333;
+			margin-bottom: 20px;
+		}
+
+		.actions {
+			text-align: right;
+			margin-bottom: 20px;
+		}
+
+		.actions a {
+			padding: 10px 15px;
+			background-color: #007bff;
+			color: white;
+			text-decoration: none;
+			border-radius: 5px;
+			margin-left: 10px;
+			transition: background-color 0.3s ease;
+		}
+
+		.actions a:hover {
+			background-color: #0056b3;
+		}
+
+		.filters {
+			margin-bottom: 20px;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+		}
+
+		.filters form {
+			display: flex;
+			align-items: center;
+		}
+
+		.filters label {
+			margin-right: 10px;
+			font-weight: bold;
+			color: #555555;
+		}
+
+		.filters select {
+			padding: 8px;
+			border: 1px solid #cccccc;
+			border-radius: 5px;
+			margin-right: 10px;
+			font-size: 16px;
+		}
+
+		.filters button {
+			padding: 8px 12px;
+			background-color: #28a745;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			cursor: pointer;
+			font-size: 16px;
+			transition: background-color 0.3s ease;
+		}
+
+		.filters button:hover {
+			background-color: #218838;
+		}
+
+		.filters .clear-btn {
+			background-color: #6c757d;
+		}
+
+		.filters .clear-btn:hover {
+			background-color: #5a6268;
+		}
+
+		table {
+			width: 100%;
+			border-collapse: collapse;
+			background-color: #ffffff;
+		}
+
+		th,
+		td {
+			padding: 12px;
+			border: 1px solid #dddddd;
+			text-align: left;
+		}
+
+		th {
+			background-color: #f8f9fa;
+		}
+
+		tr:nth-child(even) {
+			background-color: #f2f2f2;
+		}
+
+		.edit-btn,
+		.delete-btn {
+			padding: 5px 10px;
+			color: white;
+			text-decoration: none;
+			border-radius: 5px;
+			margin-right: 5px;
+			font-size: 14px;
+			display: inline-block;
+		}
+
+		.edit-btn {
+			background-color: #17a2b8;
+		}
+
+		.edit-btn:hover {
+			background-color: #117a8b;
+		}
+
+		.delete-btn {
+			background-color: #dc3545;
+		}
+
+		.delete-btn:hover {
+			background-color: #c82333;
+		}
+
+		.message {
+			text-align: center;
+			margin-bottom: 20px;
+			font-size: 16px;
+		}
+
+		.success {
+			color: #28a745;
+		}
+
+		.error {
+			color: #dc3545;
+		}
+
+		/* Estilos para la paginación */
+		.pagination {
+			display: flex;
+			justify-content: center;
+			margin-top: 20px;
+		}
+
+		.pagination a,
+		.pagination span {
+			margin: 0 5px;
+			padding: 8px 12px;
+			text-decoration: none;
+			color: #007bff;
+			border: 1px solid #dee2e6;
+			border-radius: 4px;
+			transition: background-color 0.3s ease, color 0.3s ease;
+		}
+
+		.pagination a:hover {
+			background-color: #007bff;
+			color: white;
+		}
+
+		.pagination .active {
+			background-color: #007bff;
+			color: white;
+			border-color: #007bff;
+		}
+
+		.pagination .disabled {
+			color: #6c757d;
+			pointer-events: none;
+			border-color: #dee2e6;
+		}
+
+		/* Ajustar la barra de navegación para que el dropdown esté centrado */
+		.dropdown {
+			position: relative;
+			display: inline-block;
+			text-align: center;
+		}
+
+		/* Estilos del dropdown-content */
+		.dropdown-content {
+			display: none;
+			position: absolute;
+			left: 50%; /* Alinea el dropdown al centro */
+			transform: translateX(-50%); /* Ajuste para centrarlo */
+			background-color: #34495e;
+			min-width: 160px;
+			box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+			z-index: 1;
+			padding: 5px 0;
+		}
+
+		/* Mostrar el dropdown cuando se haga hover */
+		.dropdown:hover .dropdown-content {
+			display: block;
+		}
+
+		.dropdown-content a {
+			padding: 10px 20px;
+			cursor: pointer;
+			background-color: #95a5a6; /* Gris claro */
+			color: white;
+			border: none;
+			border-radius: 5px;
+			font-size: 16px;
+			margin-bottom: 10px; /* Separación entre los botones */
+		}
+
+		.dropdown-content a:hover {
+			background-color: #7f8c8d; /* Gris más oscuro en hover */
+		}
+
+		.dropdown button {
+			padding: 10px 20px;
+			cursor: pointer;
+			background-color: #007BFF;
+			color: white;
+			border: none;
+			border-radius: 5px;
+			font-size: 16px;
+			margin-bottom: 10px; /* Separación entre los botones */
+		}
+
+		.dropdown button:hover {
+			background-color: #0056b3;
+		}
+	</style>
+</head>
+
+<body>
+	<div th:insert="~{fragments/navbar :: navbar}"></div>
+
+	<div class="container">
+		<h1>Listado de Preguntas</h1>
+
+		<!-- Mensajes de éxito o error -->
+		<div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+		<div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+
+		<!-- Filtros -->
+		<div class="filters">
+			<form th:action="@{/questions}" method="get">
+				<label for="category">Categoría:</label>
+				<select id="category" name="category">
+					<option value="" th:selected="${currentCategory == null || currentCategory.isEmpty()}">Todas
+					</option>
+					<option th:each="cat : ${categories}" th:value="${cat}" th:text="${cat}"
+						th:selected="${cat == currentCategory}">
+						Categoría
+					</option>
+				</select>
+
+				<label for="type">Tipo:</label>
+				<select id="type" name="type">
+					<option value="" th:selected="${currentType == null || currentType.isEmpty()}">Todos</option>
+					<option th:each="type : ${questionTypes}" th:value="${type}"
+						th:text="${#strings.toLowerCase(type) == 'true_false' ? 'Verdadero/Falso' :
+                                    (#strings.toLowerCase(type) == 'single_choice' ? 'Selección Única' :
+                                    (#strings.toLowerCase(type) == 'multiple_choice' ? 'Selección Múltiple' : 'Otro'))}" th:selected="${type.toString() == currentType}">
+						Tipo
+					</option>
+				</select>
+
+				<button type="submit">Filtrar</button>
+				<a href="/questions" class="clear-btn"
+					style="margin-left:10px; padding:8px 12px; background-color:#6c757d; color:white; border-radius:5px; text-decoration:none;">Limpiar
+					Filtros</a>
+			</form>
+		</div>
+
+		<div class="actions">
+			<a th:href="@{/questions/import}">Importar Preguntas</a>
+			<a th:href="@{/questions/new}">Crear Nueva Pregunta</a>
+		</div>
+
+		<table>
+			<thead>
+				<tr>
+					<th>ID</th>
+					<th>Texto</th>
+					<th>Tipo</th>
+					<th>Categoría</th>
+					<th>Opciones</th>
+					<th>Acciones</th>
+				</tr>
+			</thead>
+			<tbody>
+				<tr th:each="question : ${questionPage.content}">
+					<td th:text="${question.id}">1</td>
+					<td th:text="${question.text}">Texto de la pregunta</td>
+					<td>
+						<span th:switch="${#strings.toLowerCase(question.type)}">
+							<span th:case="'true_false'">Verdadero/Falso</span>
+							<span th:case="'single_choice'">Selección Única</span>
+							<span th:case="'multiple_choice'">Selección Múltiple</span>
+							<span th:case="*">Otro</span>
+						</span>
+					</td>
+					<td th:text="${question.category}">Geografía</td>
+					<td>
+						<ul>
+							<li th:each="option : ${question.options}"
+								th:text="${option.text} + (${option.isCorrect} ? ' (Correcta)' : '')"></li>
+						</ul>
+					</td>
+					<td>
+						<a th:href="@{|/questions/edit/${question.id}|}" class="edit-btn">Editar</a>
+						<a th:href="@{|/questions/delete/${question.id}|}" class="delete-btn"
+							onclick="return confirm('¿Estás seguro de eliminar esta pregunta?');">Eliminar</a>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+
+		<!-- Controles de Paginación -->
+		<div class="pagination">
+			<!-- Anterior -->
+			<a th:if="${!questionPage.first}"
+				th:href="@{/questions(page=${currentPage - 1}, category=${currentCategory}, type=${currentType})}">&laquo;
+				Anterior</a>
+			<span th:if="${questionPage.first}" class="disabled">&laquo; Anterior</span>
+
+			<!-- Números de página -->
+			<span th:each="i : ${#numbers.sequence(1, totalPages)}">
+				<a th:if="${i != currentPage}"
+					th:href="@{/questions(page=${i}, category=${currentCategory}, type=${currentType})}"
+					th:text="${i}">1</a>
+				<span th:if="${i == currentPage}" class="active" th:text="${i}">1</span>
+			</span>
+
+			<!-- Siguiente -->
+			<a th:if="${!questionPage.last}"
+				th:href="@{/questions(page=${currentPage + 1}, category=${currentCategory}, type=${currentType})}">Siguiente
+				&raquo;</a>
+			<span th:if="${questionPage.last}" class="disabled">Siguiente &raquo;</span>
+		</div>
+	</div>
+</body>
+
+</html>
